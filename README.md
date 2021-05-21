@@ -7,15 +7,17 @@
 ---
 
 Instale as seguintes dependências:
-'''bash
+
+```bash
 pip install pandas numpy
-'''
+```
 
 ### Execução
 
 ---
 
-execute o arquivo 'genetic_algorithm.py':
-'''bash
+execute o arquivo `genetic_algorithm.py`:
+
+```bash
 python genetic_algorithm.py
-'''
+```
