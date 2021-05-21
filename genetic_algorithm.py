@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 
 # Valores constantes
-DATA_PATH = 'Problema da Mochila.csv'
+DATA_PATH = 'backpack.csv'
 DATA_SEPARATOR = ';'
 POPULATION_SIZE = 1000
 WEIGHT_MAX = 12
