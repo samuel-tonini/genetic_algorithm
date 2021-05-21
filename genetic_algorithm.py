@@ -260,7 +260,7 @@ def genetic_algorithm():
         print('')
 
 
-"""Entra da execução do arquivo.
+"""Entrada execução do arquivo.
 
 Carrega o arquivo CSV e executa o algoritmo genético.
 """
