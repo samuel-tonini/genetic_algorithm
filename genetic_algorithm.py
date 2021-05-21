@@ -1,7 +1,6 @@
 import random
 import math
 import pandas as pd
-import numpy as np
 
 # Valores constantes
 DATA_PATH = 'backpack.csv'

@@ -9,7 +9,7 @@
 Instale as seguintes dependências:
 
 ```bash
-pip install pandas numpy
+pip install pandas
 ```
 
 ### Execução
