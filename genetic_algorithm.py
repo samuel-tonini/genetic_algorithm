@@ -47,15 +47,15 @@ def load_file():
     return result
 
 
-def population_initial():
+def population_random(size):
     """Gera a população inicial do algoritmo totalmente aleatória,
     apenas respeitando a capacidade máxima atribuída na variável global WEIGHT_MAX.
 
-    O tamanho da população é definido pela variável global POPULATION_SIZE.
+    O tamanho da população é definido pela parâmetro SIZE.
     """
     global population
     population = []
-    for _ in range(POPULATION_SIZE):
+    for _ in range(size):
         current_weight = 0.0
         line = []
         for i in range(len(raw_data)):
@@ -241,7 +241,7 @@ def genetic_algorithm():
 
     A quantidade de gerações é definida pela variável global GENERATION_LENGTH.
     """
-    population_initial()
+    population_random()
     fitness()
     print('top {} of generation: 0'.format(GENETIC_ALGORITHM_PRINT_SIZE))
     print(generation.head(GENETIC_ALGORITHM_PRINT_SIZE))
