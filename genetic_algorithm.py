@@ -9,7 +9,7 @@ DATA_SEPARATOR = ';'
 RESULTS_PATH = 'results.csv'
 POPULATION_SIZE = 1000
 WEIGHT_MAX = 12
-CROSSOVER_SLICE_SIZE = 4
+CROSSOVER_SLICE_SIZE = 1
 GENERATION_LENGTH = 20
 COLUMN_ITEM_LABEL = 'item'
 COLUMN_WEIGHT_LABEL = 'weight'
@@ -276,7 +276,7 @@ def generation_save_best():
 def generation_info(generation_count, mutation_rate, crossorver_rate, execution_time, evolution_freezed_for, generation_best):
     """Imprime no console alguns dados da geração atual."""
     print('generation: {}'.format(generation_count))
-    print('took: {}s'.format(execution_time))
+    print('took: {}s'.format(math.ceil(execution_time)))
     print('mutation rate of: {}%'.format(mutation_rate))
     print('crossover rate of: {}%'.format(crossorver_rate))
     print('evolution freezed for: {}'.format(evolution_freezed_for))
