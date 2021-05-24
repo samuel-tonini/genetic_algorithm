@@ -167,6 +167,17 @@ def calculate_tendency():
                         | (tendency['mean'] > tendency_maximum)].index.tolist()
 
 
+def population_fill(crossorver_rate=0, mutation_rate=0):
+    global population
+
+    population = []
+    if crossorver_rate > 0:
+        population_next(crossorver_rate)
+    population_random(POPULATION_SIZE-len(population))
+    if mutation_rate > 0:
+        population_mutation(mutation_rate)
+
+
 def fitness():
     """Gera um Pandas.DataFrame contendo as possíveis soluções, seus pesos, utilidades,
     preços e objetivos.
@@ -293,8 +304,6 @@ def genetic_algorithm():
     a execução é interrompida.
     """
 
-    global population
-
     # Quantidade de gerações que não há evolução
     evolution_freezed_for = 1
     # Melhor valor da última geração
@@ -308,8 +317,7 @@ def genetic_algorithm():
     # Horário inicial
     start_time = time.time()
 
-    population = []
-    population_random(POPULATION_SIZE)
+    population_fill(0, 0)
     fitness()
     generation_save_best()
     generation_info(generation_count, mutation_rate, crossorver_rate, time.time(
@@ -317,10 +325,7 @@ def genetic_algorithm():
     generation_count += 1
 
     while True:
-        population = []
-        population_next(crossorver_rate)
-        population_random(POPULATION_SIZE-len(population))
-        population_mutation(mutation_rate)
+        population_fill(crossorver_rate, mutation_rate)
         fitness()
         generation_save_best()
         generation_info(generation_count, mutation_rate, crossorver_rate, time.time(
