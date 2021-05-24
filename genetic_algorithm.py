@@ -1,14 +1,16 @@
 import random
 import math
+import time
 import pandas as pd
 
 # Valores constantes
 DATA_PATH = 'backpack.csv'
 DATA_SEPARATOR = ';'
+RESULTS_PATH = 'results.csv'
 POPULATION_SIZE = 1000
 WEIGHT_MAX = 12
-CROSSOVER_SLICE_SIZE = 5
-GENERATION_LENGTH = 30
+CROSSOVER_SLICE_SIZE = 2
+GENERATION_LENGTH = 20
 COLUMN_ITEM_LABEL = 'item'
 COLUMN_WEIGHT_LABEL = 'weight'
 COLUMN_UTILITY_LABEL = 'utility'
@@ -18,25 +20,33 @@ COLUMN_GOAL_LABEL = 'goal'
 COLUMN_SOLUTION_LABEL = 'solution'
 DATA_LABELS = [COLUMN_ITEM_LABEL, COLUMN_WEIGHT_LABEL,
                COLUMN_UTILITY_LABEL, COLUMN_PRICE_LABEL, COLUMN_NONE_LABEL]
-GENETIC_ALGORITHM_PRINT_SIZE = 1
 
 # Variáveis globais
 
-"""Dados do arquivo CSV."""
+# Dados do arquivo CSV
 raw_data = None
 
-"""Última população gerada."""
+# Última população gerada
 population = None
 
-"""Geração calculada."""
+# Geração calculada, ou seja, a última população com o valor de fitness calculado
 generation = None
+
+# Array com os índices dos items que possuem tendência, ou seja,
+# mais de 80% da população com o mesmo valor
+tendency = []
+
+# Melhor resultado de cada geração
+bestests = pd.DataFrame(columns=[COLUMN_SOLUTION_LABEL, COLUMN_WEIGHT_LABEL,
+                                 COLUMN_UTILITY_LABEL, COLUMN_PRICE_LABEL, COLUMN_GOAL_LABEL])
 
 
 def load_file():
     """Carregamento do arquivo CSV através da biblioteca Pandas.
 
-    O caminho do arquivo é definido pela variável global DATA_PATH.
-    """
+    Após o carregamento os itens são ordenados pela fôrmula: Utilidade / Preço.
+
+    O caminho do arquivo é definido pela variável global DATA_PATH."""
     result = pd.read_csv(DATA_PATH, sep=DATA_SEPARATOR,
                          header=0, names=DATA_LABELS)
     result[COLUMN_WEIGHT_LABEL] = result[COLUMN_WEIGHT_LABEL].apply(
@@ -44,17 +54,17 @@ def load_file():
     result[COLUMN_PRICE_LABEL] = result[COLUMN_PRICE_LABEL].apply(
         lambda x: str(x).replace(',', '.')).astype(float)
     result = result.drop(labels=COLUMN_NONE_LABEL, axis=1)
+    result = result.loc[(result[COLUMN_UTILITY_LABEL] /
+                         result[COLUMN_PRICE_LABEL]).sort_values().index]
     return result
 
 
 def population_random(size):
-    """Gera a população inicial do algoritmo totalmente aleatória,
-    apenas respeitando a capacidade máxima atribuída na variável global WEIGHT_MAX.
+    """Gera uma população totalmente aleatória, apenas respeitando a
+    capacidade máxima atribuída na variável global WEIGHT_MAX.
 
-    O tamanho da população é definido pela parâmetro SIZE.
-    """
+    O tamanho da população é definido pela parâmetro SIZE."""
     global population
-    population = []
     for _ in range(size):
         current_weight = 0.0
         line = []
@@ -67,22 +77,20 @@ def population_random(size):
         population.append(line)
 
 
-def population_next():
+def population_next(crossover_rate):
     """Gera a população próxima do algoritmo utilizando os seguintes critérios:
 
     Mantém o 1% melhor da população anterior;
 
     Realiza um cruzamento (crossover) entre o 1% melhor;
 
-    O restante da população é gerada através do método roleta.
+    O restante da população desta função é gerada através do cruzamento entre
+    duas soluções escolhidas aleatóriamente, o valor total de indivíduos é definido
+    pelo parâmetro CROSSOVER_RATE.
 
-    Em cada etapa a capacidade máxima atribuída da variável global WEIGHT_MAX é respeitada.
-
-    O tamanho da população é definido pela variável global POPULATION_SIZE.
-    """
+    Em cada etapa a capacidade máxima atribuída da variável global WEIGHT_MAX é respeitada."""
     global population
     global generation
-    population = []
     for i in range(math.ceil(POPULATION_SIZE*0.01)):
         for j in range(math.ceil(POPULATION_SIZE*0.01)):
             if i == j:
@@ -90,25 +98,32 @@ def population_next():
             else:
                 population.append(
                     crossover(generation[COLUMN_SOLUTION_LABEL][i], generation[COLUMN_SOLUTION_LABEL][j]))
-    for _ in range(POPULATION_SIZE-len(population)):
+    for _ in range(math.ceil(POPULATION_SIZE*crossover_rate/100)):
         mother_index = calculate_index_by_random_value(
             random.randint(0, calculate_max_value()-1))
         father_index = calculate_index_by_random_value(
             random.randint(0, calculate_max_value()-1))
         population.append(
             crossover(generation[COLUMN_SOLUTION_LABEL][mother_index], generation[COLUMN_SOLUTION_LABEL][father_index]))
+    if len(population) < 500:
+        for _ in range(500-len(population)):
+            index = calculate_index_by_random_value(
+                random.randint(0, calculate_max_value()-1))
+            population.append(generation[COLUMN_SOLUTION_LABEL][index])
 
 
-def population_mutation():
-    """Realiza uma mutação aleatória em 5% da população."""
-    for i in range(math.floor(POPULATION_SIZE*0.05)):
-        multation_index = random.randint(0, POPULATION_SIZE-1)
-        population[multation_index] = multation(
-            population[multation_index])
+def population_mutation(mutation_rate=5):
+    """Realiza uma mutação aleatória em um percetual da
+    população definido pelo parâmetro MUTATION_RATE."""
+    population_current_size = len(population)
+    for _ in range(math.floor(population_current_size*mutation_rate/100)):
+        multation_index = random.randint(math.floor(
+            population_current_size*(100-mutation_rate)/100), population_current_size-1)
+        population[multation_index] = multation(population[multation_index])
 
 
 def calculate_goal(item):
-    """Calcula o objetivo de um possível solução."""
+    """Calcula o fitness de um possível solução."""
     total = []
     for i in range(len(item)):
         if item[i] == 1:
@@ -142,6 +157,17 @@ def calculate_utility(item):
         if item[i] == 1:
             total.append(raw_data[COLUMN_UTILITY_LABEL][i])
     return sum(total)
+
+
+def calculate_tendency():
+    """Calcula a tendência de um item na população e
+    guarda os indeces destes itens."""
+    global tendency
+    tendency = pd.DataFrame(pd.DataFrame(population).mean(), columns=['mean'])
+    tendency_minimum = math.floor(len(population)*0.2)/len(population)
+    tendency_maximum = math.floor(len(population)*0.8)/len(population)
+    tendency = tendency[(tendency['mean'] < tendency_minimum)
+                        | (tendency['mean'] > tendency_maximum)].index.tolist()
 
 
 def fitness():
@@ -217,18 +243,25 @@ def crossover(mother, father):
 
 
 def multation(item):
-    """Realiza uma mutação em 1% dos valores.
+    """Verifica os indices com tendência e altera os valores deles.
+
+    Realiza uma mutação em 10% dos valores.
 
     A mutação segue respeitando a capacidade máxima (WEIGHT_MAX)."""
     result = item.copy()
-    current_weight = calculate_weight(item)
+
+    for i in tendency:
+        result[i] = 0 if result[i] == 1 else 1
+
+    current_weight = calculate_weight(result)
     multation_count = 0
     while multation_count < math.floor(len(raw_data)*0.1):
         i = random.randint(0, len(raw_data)-1)
         if result[i] == 1:
             result[i] = 0
             current_weight -= raw_data[COLUMN_WEIGHT_LABEL][i]
-            multation_count += 1
+            if current_weight < 12:
+                multation_count += 1
         elif (current_weight + raw_data[COLUMN_WEIGHT_LABEL][i]) < WEIGHT_MAX:
             result[i] = 1
             current_weight += raw_data[COLUMN_WEIGHT_LABEL][i]
@@ -236,32 +269,86 @@ def multation(item):
     return result
 
 
+def generation_save_best():
+    """Salva a melhor solução em um arquivo CSV, cujo caminho
+    é definido pela variável RESULTS_PATH."""
+    global bestests
+    bestests.loc[bestests.shape[0]] = generation.loc[0]
+    bestests.to_csv(RESULTS_PATH, sep=DATA_SEPARATOR, index=False)
+
+
+def generation_info(generation_count, mutation_rate, crossorver_rate, execution_time, evolution_freezed_for, generation_best):
+    """Imprime no console alguns dados da geração atual."""
+    print('generation: {}'.format(generation_count))
+    print('took: {}s'.format(execution_time))
+    print('mutation rate of: {}%'.format(mutation_rate))
+    print('crossover rate of: {}%'.format(crossorver_rate))
+    print('evolution freezed for: {}'.format(evolution_freezed_for))
+    print('best: {}'.format(generation_best))
+    print('------------------------------------------------')
+
+
 def genetic_algorithm():
     """Execução do algoritmo genético.
 
-    A quantidade de gerações é definida pela variável global GENERATION_LENGTH.
+    A quantidade de gerações é definida pela variável global GENERATION_LENGTH e
+    a taxa de mutação tenha atingido seu valor máximo. Quando ambos forem verdadeiro
+    a execução é interrompida.
     """
-    population_random()
+
+    global population
+
+    # Quantidade de gerações que não há evolução
+    evolution_freezed_for = 1
+    # Melhor valor da última geração
+    generation_last_best = 0
+    # Taxa de mutação
+    mutation_rate = 5
+    # Taxa de cruzamento
+    crossorver_rate = 80
+    # Contador de gerações
+    generation_count = 1
+    # Horário inicial
+    start_time = time.time()
+
+    population = []
+    population_random(POPULATION_SIZE)
     fitness()
-    print('top {} of generation: 0'.format(GENETIC_ALGORITHM_PRINT_SIZE))
-    print(generation.head(GENETIC_ALGORITHM_PRINT_SIZE))
-    print('')
-    print('')
+    generation_save_best()
+    generation_info(generation_count, mutation_rate, crossorver_rate, time.time(
+    ) - start_time, evolution_freezed_for, generation[COLUMN_GOAL_LABEL][0])
+    generation_count += 1
 
-    for i in range(GENERATION_LENGTH-1):
-        population_next()
-        population_mutation()
+    while True:
+        population = []
+        population_next(crossorver_rate)
+        population_random(POPULATION_SIZE-len(population))
+        calculate_tendency()
+        population_mutation(mutation_rate)
         fitness()
-        print('top {} of generation: {}'.format(
-            GENETIC_ALGORITHM_PRINT_SIZE, i+1))
-        print(generation.head(GENETIC_ALGORITHM_PRINT_SIZE))
-        print('')
-        print('')
+        generation_save_best()
+        generation_info(generation_count, mutation_rate, crossorver_rate, time.time(
+        ) - start_time, evolution_freezed_for, generation[COLUMN_GOAL_LABEL][0])
+        if (generation[COLUMN_GOAL_LABEL][0] == generation_last_best):
+            evolution_freezed_for += 1
+            if (mutation_rate < 80):
+                mutation_rate += 5
+            if (crossorver_rate > 5):
+                crossorver_rate -= 5
+        else:
+            generation_last_best = generation[COLUMN_GOAL_LABEL][0]
+            evolution_freezed_for = 1
+            if (mutation_rate > 5):
+                mutation_rate -= 5
+            if (crossorver_rate < 80):
+                crossorver_rate += 5
+        if (GENERATION_LENGTH <= evolution_freezed_for) and (mutation_rate > 70):
+            break
+        else:
+            generation_count += 1
+        start_time = time.time()
 
 
-"""Entrada execução do arquivo.
-
-Carrega o arquivo CSV e executa o algoritmo genético.
-"""
+# Entrada execução do arquivo.
 raw_data = load_file()
 genetic_algorithm()
