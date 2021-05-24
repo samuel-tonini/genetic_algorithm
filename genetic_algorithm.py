@@ -44,8 +44,6 @@ bestests = pd.DataFrame(columns=[COLUMN_SOLUTION_LABEL, COLUMN_WEIGHT_LABEL,
 def load_file():
     """Carregamento do arquivo CSV através da biblioteca Pandas.
 
-    Após o carregamento os itens são ordenados pela fôrmula: Utilidade / Preço.
-
     O caminho do arquivo é definido pela variável global DATA_PATH."""
     result = pd.read_csv(DATA_PATH, sep=DATA_SEPARATOR,
                          header=0, names=DATA_LABELS)
@@ -54,8 +52,6 @@ def load_file():
     result[COLUMN_PRICE_LABEL] = result[COLUMN_PRICE_LABEL].apply(
         lambda x: str(x).replace(',', '.')).astype(float)
     result = result.drop(labels=COLUMN_NONE_LABEL, axis=1)
-    result = result.loc[(result[COLUMN_UTILITY_LABEL] /
-                         result[COLUMN_PRICE_LABEL]).sort_values().index]
     return result
 
 
