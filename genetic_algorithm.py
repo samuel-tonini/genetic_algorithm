@@ -301,13 +301,14 @@ def genetic_algorithm():
 
     A quantidade de gerações é definida pela variável global GENERATION_LENGTH e
     a taxa de mutação tenha atingido seu valor máximo. Quando ambos forem verdadeiro
-    a execução é interrompida.
-    """
+    a execução é interrompida."""
 
     # Quantidade de gerações que não há evolução
     evolution_freezed_for = 1
     # Melhor valor da última geração
-    generation_last_best = 0
+    generation_best_last = 0
+    # Melhor valor da geração atual
+    generation_best_current = 0
     # Taxa de mutação
     mutation_rate = 5
     # Taxa de cruzamento
@@ -320,30 +321,32 @@ def genetic_algorithm():
     population_fill(0, 0)
     fitness()
     generation_save_best()
+    generation_best_current = generation[COLUMN_GOAL_LABEL][0]
     generation_info(generation_count, mutation_rate, crossorver_rate, time.time(
-    ) - start_time, evolution_freezed_for, generation[COLUMN_GOAL_LABEL][0])
+    ) - start_time, evolution_freezed_for, generation_best_current)
     generation_count += 1
 
     while True:
         population_fill(crossorver_rate, mutation_rate)
         fitness()
+        generation_best_current = generation[COLUMN_GOAL_LABEL][0]
         generation_save_best()
         generation_info(generation_count, mutation_rate, crossorver_rate, time.time(
-        ) - start_time, evolution_freezed_for, generation[COLUMN_GOAL_LABEL][0])
-        if (generation[COLUMN_GOAL_LABEL][0] == generation_last_best):
+        ) - start_time, evolution_freezed_for, )
+        if (generation_best_current == generation_best_last):
             evolution_freezed_for += 1
             if (mutation_rate < 80):
                 mutation_rate += 5
             if (crossorver_rate > 5):
                 crossorver_rate -= 5
         else:
-            generation_last_best = generation[COLUMN_GOAL_LABEL][0]
+            generation_best_last = generation_best_current
             evolution_freezed_for = 1
             if (mutation_rate > 5):
                 mutation_rate -= 5
             if (crossorver_rate < 80):
                 crossorver_rate += 5
-        if (GENERATION_LENGTH <= evolution_freezed_for) and (mutation_rate > 70):
+        if (GENERATION_LENGTH < evolution_freezed_for) and (mutation_rate > 70):
             break
         else:
             generation_count += 1
