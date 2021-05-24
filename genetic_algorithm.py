@@ -9,7 +9,7 @@ DATA_SEPARATOR = ';'
 RESULTS_PATH = 'results.csv'
 POPULATION_SIZE = 1000
 WEIGHT_MAX = 12
-CROSSOVER_SLICE_SIZE = 2
+CROSSOVER_SLICE_SIZE = 4
 GENERATION_LENGTH = 20
 COLUMN_ITEM_LABEL = 'item'
 COLUMN_WEIGHT_LABEL = 'weight'
@@ -161,7 +161,7 @@ def calculate_utility(item):
 
 def calculate_tendency():
     """Calcula a tendência de um item na população e
-    guarda os indeces destes itens."""
+    guarda os índices destes itens."""
     global tendency
     tendency = pd.DataFrame(pd.DataFrame(population).mean(), columns=['mean'])
     tendency_minimum = math.floor(len(population)*0.2)/len(population)
@@ -243,7 +243,7 @@ def crossover(mother, father):
 
 
 def multation(item):
-    """Verifica os indices com tendência e altera os valores deles.
+    """Verifica os índices com tendência e altera os valores deles.
 
     Realiza uma mutação em 10% dos valores.
 
