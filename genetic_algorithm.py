@@ -111,6 +111,7 @@ def population_next(crossover_rate):
 def population_mutation(mutation_rate=5):
     """Realiza uma mutação aleatória em um percetual da
     população definido pelo parâmetro MUTATION_RATE."""
+    calculate_tendency()
     population_current_size = len(population)
     for _ in range(math.floor(population_current_size*mutation_rate/100)):
         multation_index = random.randint(math.floor(
@@ -319,7 +320,6 @@ def genetic_algorithm():
         population = []
         population_next(crossorver_rate)
         population_random(POPULATION_SIZE-len(population))
-        calculate_tendency()
         population_mutation(mutation_rate)
         fitness()
         generation_save_best()
