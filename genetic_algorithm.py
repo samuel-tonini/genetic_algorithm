@@ -101,8 +101,8 @@ def population_next(crossover_rate):
             random.randint(0, calculate_max_value()-1))
         population.append(
             crossover(generation[COLUMN_SOLUTION_LABEL][mother_index], generation[COLUMN_SOLUTION_LABEL][father_index]))
-    if len(population) < 500:
-        for _ in range(500-len(population)):
+    if len(population) < math.ceil(POPULATION_SIZE/2):
+        for _ in range(math.ceil(POPULATION_SIZE/2)-len(population)):
             index = calculate_index_by_random_value(
                 random.randint(0, calculate_max_value()-1))
             population.append(generation[COLUMN_SOLUTION_LABEL][index])
@@ -331,8 +331,6 @@ def genetic_algorithm():
         fitness()
         generation_best_current = generation[COLUMN_GOAL_LABEL][0]
         generation_save_best()
-        generation_info(generation_count, mutation_rate, crossorver_rate, time.time(
-        ) - start_time, evolution_freezed_for, )
         if (generation_best_current == generation_best_last):
             evolution_freezed_for += 1
             if (mutation_rate < 80):
@@ -346,11 +344,15 @@ def genetic_algorithm():
                 mutation_rate -= 5
             if (crossorver_rate < 80):
                 crossorver_rate += 5
+        generation_info(generation_count, mutation_rate, crossorver_rate, time.time(
+        ) - start_time, evolution_freezed_for, generation_best_current)
         if (GENERATION_LENGTH < evolution_freezed_for) and (mutation_rate > 70):
             break
         else:
             generation_count += 1
         start_time = time.time()
+        # generation.to_csv('generation{}.csv'.format(
+        #     generation_count), sep=DATA_SEPARATOR, index=False)
 
 
 # Entrada execução do arquivo.
