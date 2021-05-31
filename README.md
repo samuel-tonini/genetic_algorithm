@@ -16,8 +16,8 @@ pip install pandas
 
 ---
 
-execute o arquivo `genetic_algorithm.py`:
+execute o arquivo `algoritmo_genetico.py`:
 
 ```bash
-python genetic_algorithm.py
+python algoritmo_genetico.py
 ```
