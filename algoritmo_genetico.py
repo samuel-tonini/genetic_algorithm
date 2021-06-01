@@ -33,16 +33,29 @@ TENDENCIA_PERCENTUAL = 80
 GERACAO_PREFIXO_MELHORES = 'melhores';
 GERACAO_PREFIXO_GERACAO = 'geracao';
 
-# Variáveis controle algorítmo
+# Variáveis controle algoritmo
 
+# True = Salva toda a geração
+# False = Salva apenas os melhores
 EXECUCAO_SALVAR_GERACAO_COMPLETA = False
-POPULACAO_POR_MU_LAMBDA = False
+
+# True = População por Mu Lambda
+# False = População por Elitismo
+POPULACAO_POR_MU_LAMBDA = True
+
+# True = Cruzamento Uniforme
+# False = Cruzamento Dois Pontos
 CRUZAMENTO_UNIFORME = True
+
+# True = Seleção por Roleta
+# False = Seleção por Torneio
 SELECAO_POR_ROLETA = True
+
+# Quantidade de repetições que a configuração atual será executada
 EXECUCAO_QUANTIDADE_REPETICOES = 1
 
 
-# Execução principal do algorítmo genético
+# Execução principal do algoritmo genético
 
 quantidade_geracoes_sem_evolucao = 0
 melhor_fitness_ultima_geracao = 0.0
