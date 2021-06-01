@@ -41,3 +41,8 @@ class GeracaoUtilidades:
         if resultado.shape[0] > self.__populacao_quantidade_cromossomos:
             resultado = resultado[:self.__populacao_quantidade_cromossomos]
         return resultado
+
+
+    def remover_duplicados(self, geracao):
+        geracao_sem_duplicados = geracao.drop_duplicates(subset=['peso', 'utilidade', 'preco', 'fitness'], keep='first')
+        return geracao_sem_duplicados

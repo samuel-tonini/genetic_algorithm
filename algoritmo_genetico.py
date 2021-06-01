@@ -9,6 +9,7 @@ from geracao_utilidades import GeracaoUtilidades
 from populacao_aleatoria import PopulacaoAleatoria
 from populacao_elitismo import PopulacaoElitismo
 from populacao_mu_lambda import PopulacaoMuLambda
+from populacao_preencher import PopulacaoPreencher
 from selecao_roleta import SelecaoRoleta
 from selecao_torneio import SelecaoTorneio
 from tendencia import Tendencia
@@ -25,7 +26,7 @@ POPULACAO_ELITISMO_PERCENTUAL_SOBREVIVENTES = 10
 MOCHILA_CAPACIDADE_MAXIMA = 12
 CRUZAMENTO_UNIFORME_QUANTIDADE_GENES_POR_GRUPO = 1
 MUTACAO_PERCENTUAL_MAXIMO_GENES_ALTERADOS = 10
-MUTACAO_PERCENTUAL_CHANGE_GENE_ALTERAR = 1
+MUTACAO_PERCENTUAL_CHANGE_GENE_ALTERAR = 5
 SELECAO_TORNEIO_QUANTIDADE_PARTICIPANTES = 5
 EXECUCAO_QUANTIDADE_GERACOES_SEM_EVOLUCAO = 20
 EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO = 10
@@ -57,19 +58,6 @@ EXECUCAO_QUANTIDADE_REPETICOES = 1
 
 # Execução principal do algoritmo genético
 
-quantidade_geracoes_sem_evolucao = 0
-melhor_fitness_ultima_geracao = 0.0
-melhor_fitness_geracao_atual = 0.0
-percentual_mutacao = 0
-percentual_cruzamento = 100
-contador_geracoes = 0
-contador_execucoes = 0
-populacao = []
-geracao = None
-tempo_inicio = 0
-tempo_gasto = 0
-melhor_fitness = 0.0
-
 mochila = ItensMochila(ITENS_MOCHILA_CAMINHO_ARQUIVO, ITENS_MOCHILA_SEPARADOR_DADOS)
 itens_mochila = mochila.itens()
 cromossomo_utilidades = CromossomoUtilidades(itens_mochila, MOCHILA_CAPACIDADE_MAXIMA, MUTACAO_PERCENTUAL_MAXIMO_GENES_ALTERADOS, MUTACAO_PERCENTUAL_CHANGE_GENE_ALTERAR, POPULACAO_QUANTIDADE_GENES_CROMOSSOMO)
@@ -92,7 +80,23 @@ if POPULACAO_POR_MU_LAMBDA:
 else:
     gerador_demais_populacoes = PopulacaoElitismo(POPULACAO_QUANTIDADE_CROMOSSOMOS, POPULACAO_ELITISMO_PERCENTUAL_SOBREVIVENTES, tecnica_cruzamento, cromossomo_utilidades, metodo_selecao, tendencia)
 
+populacao_preenchimento = PopulacaoPreencher(POPULACAO_QUANTIDADE_CROMOSSOMOS, tecnica_cruzamento, cromossomo_utilidades, metodo_selecao)
+
+contador_execucoes = 0
+
 for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
+    quantidade_geracoes_sem_evolucao = 0
+    melhor_fitness_ultima_geracao = 0.0
+    melhor_fitness_geracao_atual = 0.0
+    percentual_mutacao = 0
+    percentual_cruzamento = 100
+    contador_geracoes = 0
+    populacao = []
+    geracao = None
+    tempo_inicio = 0
+    tempo_gasto = 0
+    melhor_fitness = 0.0
+
     contador_execucoes += 1
 
     tempo_inicio = time.time()
@@ -109,6 +113,8 @@ for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
 
     while True:
         tempo_inicio = time.time()
+        geracao = geracao_utilidades.remover_duplicados(geracao)
+        populacao = populacao_preenchimento.gerar_populacao(geracao['solucao'].tolist())
         populacao = gerador_demais_populacoes.gerar_populacao(geracao['solucao'].tolist(), percentual_mutacao)
         geracao = geracao_utilidades.apurar_geracao(populacao)
         if melhor_fitness == geracao['fitness'][0]:
