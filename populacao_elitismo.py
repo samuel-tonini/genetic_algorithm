@@ -5,7 +5,24 @@ from populacao import Populacao
 
 
 class PopulacaoElitismo(Populacao):
+    """Classe que implementa a geração de uma população utilizando a técnica de Elitismo."""
+
     def __init__(self, tamanho_populacao, percentual_sobreviventes, cruzamento, cromossomo_utilidades, selecao, tendencia):
+        """Parâmetros:
+
+        tamanho_populacao = Quantidade máxima de cromossomos na população;
+
+        percentual_sobreviventes = Percentual dos genes que irão sobreviver para a próxima geração;
+
+        cruzamento = Instância da classe que implementa a técnica de cruzamento utilizada e 
+        herda da classe base Cruzamento;
+
+        cromossomo_utilidades = Instância da classe de utilidades para cromossomos
+
+        selecao = Instância da classe que implementa a técnica de seleção utilizada e 
+        herda da classe base Seleção;
+
+        tendencia = Instância da classe que implementa a técnica que calcula os genes tedenciosos."""
         self.__tamanho_populacao = tamanho_populacao
         self.__percentual_sobreviventes = percentual_sobreviventes
         self.__cruzamento = cruzamento
@@ -15,6 +32,10 @@ class PopulacaoElitismo(Populacao):
 
 
     def gerar_populacao(self, populacao_atual, percentual_mutacao):
+        """Geração da população por Elitismo onde o percentual de sobreviventes é definido pelo parâmetro percentual_sobreviventes
+        os demais indivíduos serão gerados utilizando as técnicas de seleção e cruzamento repassadas no construtor.
+        Caso haja uma taxa de mutação a mesma realiza sorteio apenas nos filhos gerados.
+        Por fim retorna os sobreviventes e os filhos gerados."""
         quantidade_sobreviventes = math.floor(self.__tamanho_populacao * self.__percentual_sobreviventes / 100)
         quantidade_novos_individuos = self.__tamanho_populacao - quantidade_sobreviventes
         quantidade_mutacoes = math.floor(percentual_mutacao / quantidade_novos_individuos * 100)

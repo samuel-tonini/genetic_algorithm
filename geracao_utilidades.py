@@ -4,7 +4,22 @@ import pandas as pd
 
 
 class GeracaoUtilidades:
+    """Classe com métodos utilitários para a manipulação das gerações."""
+
     def __init__(self, separador_dados, prefixo_melhores, prefixo_geracao, cromossomo_utilidades, mochila_capacidade_maxima, populacao_quantidade_cromossomos):
+        """Parâmetros:
+
+        separador_dados = Caracter para separação de dados ao salvar o arquivo;
+
+        prefixo_melhores = Prefixo para o nome do arquivo com os melhores resulados;
+
+        prefixo_geracao = Prefixo para o nome do arquivo com os dados da geração completa;
+
+        cromossomo_utilidades = Instância da classe de utilidades para cromossomos;
+
+        mochila_capacidade_maxima = Valor da capacidade máxima da mochila;
+
+        populacao_quantidade_cromossomos = Quantidade máxima de cromossomos na população."""
         self.__separador_dados = separador_dados
         self.__prefixo_melhores = prefixo_melhores
         self.__prefixo_geracao = prefixo_geracao
@@ -14,6 +29,7 @@ class GeracaoUtilidades:
 
 
     def salvar_melhor(self, dados_geracao, contador_execucoes):
+        """Método para salvar o melhor resultado da geração."""
         caminho_arquivo = '{}_{}.csv'.format(self.__prefixo_melhores, contador_execucoes)
         if os.path.exists(caminho_arquivo):
             melhores = pd.read_csv(caminho_arquivo, sep=self.__separador_dados)
@@ -24,11 +40,15 @@ class GeracaoUtilidades:
 
 
     def salvar_geracao(self, dados_geracao, contador_execucoes, contador_geracoes):
+        """Método para salvar toda geração."""
         caminho_arquivo = '{}_{}_{}.csv'.format(self.__prefixo_geracao, contador_execucoes, contador_geracoes)
         dados_geracao.to_csv(caminho_arquivo, sep=self.__separador_dados, index=False)
 
 
     def apurar_geracao(self, populacao):
+        """Método apurar o fitness da geração e retorna os valores ordenados de maneira
+        decrescente e caso a população esteja maior que o tamanho máximo apenas os valores
+        até o tamanho máximo da população será retornado."""
         resultado = pd.DataFrame(columns=['solucao', 'peso', 'utilidade', 'preco', 'fitness'])
         for i in range(len(populacao)):
             cromossomo = populacao[i]
