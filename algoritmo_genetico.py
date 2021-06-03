@@ -89,7 +89,6 @@ for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
     melhor_fitness_ultima_geracao = 0.0
     melhor_fitness_geracao_atual = 0.0
     percentual_mutacao = 0
-    percentual_cruzamento = 100
     contador_geracoes = 0
     populacao = []
     geracao = None
@@ -109,7 +108,7 @@ for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
     if EXECUCAO_SALVAR_GERACAO_COMPLETA:
         geracao_utilidades.salvar_geracao(geracao, contador_execucoes, contador_geracoes)
     tempo_gasto = time.time() - tempo_inicio
-    utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, percentual_cruzamento, tempo_gasto, quantidade_geracoes_sem_evolucao, melhor_fitness)
+    utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, tempo_gasto, quantidade_geracoes_sem_evolucao, melhor_fitness)
 
     while True:
         tempo_inicio = time.time()
@@ -120,13 +119,9 @@ for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
         if melhor_fitness == geracao['fitness'][0]:
             if (100-percentual_mutacao) >= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO:
                 percentual_mutacao += EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO
-            if percentual_cruzamento >= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO:
-                percentual_cruzamento -= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO
             quantidade_geracoes_sem_evolucao += 1
         else:
             melhor_fitness = geracao['fitness'][0]
-            if (100-percentual_cruzamento) >= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO:
-                percentual_cruzamento += EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO
             if percentual_mutacao >= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO:
                 percentual_mutacao -= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO
             quantidade_geracoes_sem_evolucao = 0
@@ -135,7 +130,7 @@ for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
         if EXECUCAO_SALVAR_GERACAO_COMPLETA:
             geracao_utilidades.salvar_geracao(geracao, contador_execucoes, contador_geracoes)
         tempo_gasto = time.time() - tempo_inicio
-        utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, percentual_cruzamento, tempo_gasto, quantidade_geracoes_sem_evolucao, melhor_fitness)
+        utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, tempo_gasto, quantidade_geracoes_sem_evolucao, melhor_fitness)
 
         if quantidade_geracoes_sem_evolucao >= EXECUCAO_QUANTIDADE_GERACOES_SEM_EVOLUCAO:
             break
