@@ -32,10 +32,6 @@ SELECAO_TORNEIO_QUANTIDADE_PARTICIPANTES = 5
 EXECUCAO_QUANTIDADE_GERACOES_SEM_EVOLUCAO = 20
 EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO = 10
 TENDENCIA_PERCENTUAL = 80
-TENDENCIA_QUANTIDADE_MINIMA_ESQUEMAS = 10
-TENDENCIA_GRUPO_QUANTIDADE_MAXIMA_CROMOSSOMOS = 100
-TENDENCIA_GRUPO_DISTANCIA = 10
-TENDENCIA_FREQUENCIA_EXECUCAO = 1
 GERACAO_PREFIXO_MELHORES = 'melhores';
 GERACAO_PREFIXO_GERACAO = 'geracao';
 
@@ -57,12 +53,24 @@ CRUZAMENTO_UNIFORME = True
 # False = Seleção por Torneio
 SELECAO_POR_ROLETA = True
 
+# Quantidade de repetições que a configuração atual será executada
+EXECUCAO_QUANTIDADE_REPETICOES = 1
+
 # True = Tendência por Quantidade
 # False = Tendência por Esquemas
 TEDENCIA_POR_QUANTIDADE = False
 
-# Quantidade de repetições que a configuração atual será executada
-EXECUCAO_QUANTIDADE_REPETICOES = 1
+# Quantidade mínina de esquemas para que a população não seja classificada como tendenciosa
+TENDENCIA_QUANTIDADE_MINIMA_ESQUEMAS = 10
+
+# Quantidade máxima de cromossomos em um grupo para que a população seja classificada como tendenciosa
+TENDENCIA_GRUPO_QUANTIDADE_MAXIMA_CROMOSSOMOS = 100
+
+# Distância máxima para um cromossomo entrar em um grupo já existente
+TENDENCIA_GRUPO_DISTANCIA = 10
+
+# Frequência de execução do método de tendência
+TENDENCIA_FREQUENCIA_EXECUCAO = 1
 
 
 # Execução principal do algoritmo genético
