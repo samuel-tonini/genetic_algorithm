@@ -26,7 +26,7 @@ class PopulacaoPreencher(Populacao):
         self.__selecao = selecao
 
 
-    def gerar_populacao(self, populacao_atual, percentual_mutacao = 0.0):
+    def gerar_populacao(self, populacao_atual, percentual_mutacao = 0.0, contador_geracoes = 0):
         """Preenchimento de uma população que estaja abaixo da quantidade de indivíduos defina para
         execução, utilizando apenas as técnicas de cruzamento e seleção."""
         tamanho_populacao_atual = len(populacao_atual)

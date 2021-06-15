@@ -12,7 +12,8 @@ from populacao_mu_lambda import PopulacaoMuLambda
 from populacao_preencher import PopulacaoPreencher
 from selecao_roleta import SelecaoRoleta
 from selecao_torneio import SelecaoTorneio
-from tendencia import Tendencia
+from tendencia_por_esquemas import TendenciaPorEsquemas
+from tendencia_por_quantidade import TendenciaPorQuantidade
 import utilidades
 
 
@@ -31,6 +32,10 @@ SELECAO_TORNEIO_QUANTIDADE_PARTICIPANTES = 5
 EXECUCAO_QUANTIDADE_GERACOES_SEM_EVOLUCAO = 20
 EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO = 10
 TENDENCIA_PERCENTUAL = 80
+TENDENCIA_QUANTIDADE_MINIMA_ESQUEMAS = 10
+TENDENCIA_GRUPO_QUANTIDADE_MAXIMA_CROMOSSOMOS = 100
+TENDENCIA_GRUPO_DISTANCIA = 10
+TENDENCIA_FREQUENCIA_EXECUCAO = 1
 GERACAO_PREFIXO_MELHORES = 'melhores';
 GERACAO_PREFIXO_GERACAO = 'geracao';
 
@@ -52,6 +57,10 @@ CRUZAMENTO_UNIFORME = True
 # False = Seleção por Torneio
 SELECAO_POR_ROLETA = True
 
+# True = Tendência por Quantidade
+# False = Tendência por Esquemas
+TEDENCIA_POR_QUANTIDADE = False
+
 # Quantidade de repetições que a configuração atual será executada
 EXECUCAO_QUANTIDADE_REPETICOES = 1
 
@@ -62,8 +71,12 @@ mochila = ItensMochila(ITENS_MOCHILA_CAMINHO_ARQUIVO, ITENS_MOCHILA_SEPARADOR_DA
 itens_mochila = mochila.itens()
 cromossomo_utilidades = CromossomoUtilidades(itens_mochila, MOCHILA_CAPACIDADE_MAXIMA, MUTACAO_PERCENTUAL_MAXIMO_GENES_ALTERADOS, MUTACAO_PERCENTUAL_CHANGE_GENE_ALTERAR, POPULACAO_QUANTIDADE_GENES_CROMOSSOMO)
 gerador_primeira_populacao = PopulacaoAleatoria(itens_mochila, MOCHILA_CAPACIDADE_MAXIMA, POPULACAO_QUANTIDADE_CROMOSSOMOS, POPULACAO_QUANTIDADE_GENES_CROMOSSOMO, cromossomo_utilidades)
-tendencia = Tendencia(TENDENCIA_PERCENTUAL)
 geracao_utilidades = GeracaoUtilidades(ITENS_MOCHILA_SEPARADOR_DADOS, GERACAO_PREFIXO_MELHORES, GERACAO_PREFIXO_GERACAO, cromossomo_utilidades, MOCHILA_CAPACIDADE_MAXIMA, POPULACAO_QUANTIDADE_CROMOSSOMOS)
+
+if TEDENCIA_POR_QUANTIDADE:
+    tendencia = TendenciaPorQuantidade(TENDENCIA_FREQUENCIA_EXECUCAO, TENDENCIA_PERCENTUAL)
+else:
+    tendencia = TendenciaPorEsquemas(TENDENCIA_FREQUENCIA_EXECUCAO, TENDENCIA_QUANTIDADE_MINIMA_ESQUEMAS, TENDENCIA_GRUPO_DISTANCIA, TENDENCIA_GRUPO_QUANTIDADE_MAXIMA_CROMOSSOMOS, POPULACAO_QUANTIDADE_GENES_CROMOSSOMO)
 
 if CRUZAMENTO_UNIFORME:
     tecnica_cruzamento = CruzamentoUniforme(POPULACAO_QUANTIDADE_GENES_CROMOSSOMO, CRUZAMENTO_UNIFORME_QUANTIDADE_GENES_POR_GRUPO, cromossomo_utilidades)
@@ -114,7 +127,7 @@ for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
         tempo_inicio = time.time()
         geracao = geracao_utilidades.remover_duplicados(geracao)
         populacao = populacao_preenchimento.gerar_populacao(geracao['solucao'].tolist())
-        populacao = gerador_demais_populacoes.gerar_populacao(geracao['solucao'].tolist(), percentual_mutacao)
+        populacao = gerador_demais_populacoes.gerar_populacao(geracao['solucao'].tolist(), percentual_mutacao, contador_geracoes)
         geracao = geracao_utilidades.apurar_geracao(populacao)
         if melhor_fitness == geracao['fitness'][0]:
             if (100-percentual_mutacao) >= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO:

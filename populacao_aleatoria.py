@@ -25,7 +25,7 @@ class PopulacaoAleatoria(Populacao):
         self.__cromossomo_utilidades = cromossomo_utilidades
 
 
-    def gerar_populacao(self, populacao_atual = [], percentual_mutacao = 0):
+    def gerar_populacao(self, populacao_atual = [], percentual_mutacao = 0, contador_geracoes = 0):
         """Geração da população totalmente aleatória. O cromossomo é iniciado com todos os genes em zero,
         depois é sorteado aleatóriamente um item para adicionar ao cromossomo, quando o peso do item adicionado
         jutamente ao peso dos demais itens ultrapassa a capacidade máxima da mochila o item não é adicionado
