@@ -15,5 +15,6 @@ def imprimir_informacoes(contador_geracoes, taxa_mutacao, tempo_execucao, quanti
     print('Tempo gasto: {}s'.format(math.ceil(tempo_execucao)))
     print('Taxa de Mutação: {}%'.format(taxa_mutacao))
     print('Quantidade de Gerações sem Evolução: {}'.format(quantidade_geracoes_sem_evolucao))
-    print('Melhor Fitness da Geração: {}'.format(melhor_fitness))
+    if not(melhor_fitness) == None:
+        print('Melhor Fitness da Geração: {}'.format(melhor_fitness))
     print('------------------------------------------------')

@@ -6,6 +6,8 @@ from cruzamento_dois_pontos import CruzamentoDoisPontos
 from cruzamento_uniforme import CruzamentoUniforme
 from itens_mochila import ItensMochila
 from geracao_utilidades import GeracaoUtilidades
+from ordenacao_multiobjetivo import OrdenacaoMultiobjetivo
+from ordenacao_simples import OrdenacaoSimples
 from populacao_aleatoria import PopulacaoAleatoria
 from populacao_elitismo import PopulacaoElitismo
 from populacao_mu_lambda import PopulacaoMuLambda
@@ -33,6 +35,7 @@ EXECUCAO_QUANTIDADE_GERACOES_SEM_EVOLUCAO = 20
 EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO = 10
 TENDENCIA_PERCENTUAL = 80
 GERACAO_PREFIXO_MELHORES = 'melhores';
+GERACAO_PREFIXO_MELHORES_MULTIOBJETIVO = 'melhores_multiobjetivo';
 GERACAO_PREFIXO_GERACAO = 'geracao';
 
 # Variáveis controle algoritmo
@@ -72,6 +75,20 @@ TENDENCIA_GRUPO_DISTANCIA = 10
 # Frequência de execução do método de tendência
 TENDENCIA_FREQUENCIA_EXECUCAO = 1
 
+# Matriz de jugamento método AHP
+AHP_MATRIZ_JULGAMENTO = { 'utilidade': { 'preco': 1/5, 'peso': 1/9 }, 'peso': { 'preco': 9 } }
+
+# Se utiliza o multiobjetivo ou não, utilizando apenas utilidade / preço
+MULTIOBJETIVO = True
+
+# Tecnica de ordenação multiobjetivo
+# AHP = True
+# Borda = False
+MULTIOBJETIVO_AHP = True
+
+# Quantidade máxima de gerações do algoritmo
+EXECUCAO_QUANTIDADE_GERACOES_MAXIMA = 100
+
 
 # Execução principal do algoritmo genético
 
@@ -79,7 +96,7 @@ mochila = ItensMochila(ITENS_MOCHILA_CAMINHO_ARQUIVO, ITENS_MOCHILA_SEPARADOR_DA
 itens_mochila = mochila.itens()
 cromossomo_utilidades = CromossomoUtilidades(itens_mochila, MOCHILA_CAPACIDADE_MAXIMA, MUTACAO_PERCENTUAL_MAXIMO_GENES_ALTERADOS, MUTACAO_PERCENTUAL_CHANGE_GENE_ALTERAR, POPULACAO_QUANTIDADE_GENES_CROMOSSOMO)
 gerador_primeira_populacao = PopulacaoAleatoria(itens_mochila, MOCHILA_CAPACIDADE_MAXIMA, POPULACAO_QUANTIDADE_CROMOSSOMOS, POPULACAO_QUANTIDADE_GENES_CROMOSSOMO, cromossomo_utilidades)
-geracao_utilidades = GeracaoUtilidades(ITENS_MOCHILA_SEPARADOR_DADOS, GERACAO_PREFIXO_MELHORES, GERACAO_PREFIXO_GERACAO, cromossomo_utilidades, MOCHILA_CAPACIDADE_MAXIMA, POPULACAO_QUANTIDADE_CROMOSSOMOS)
+geracao_utilidades = GeracaoUtilidades(ITENS_MOCHILA_SEPARADOR_DADOS, GERACAO_PREFIXO_MELHORES, GERACAO_PREFIXO_GERACAO, cromossomo_utilidades, MOCHILA_CAPACIDADE_MAXIMA, POPULACAO_QUANTIDADE_CROMOSSOMOS, MULTIOBJETIVO, GERACAO_PREFIXO_MELHORES_MULTIOBJETIVO)
 
 if TEDENCIA_POR_QUANTIDADE:
     tendencia = TendenciaPorQuantidade(TENDENCIA_FREQUENCIA_EXECUCAO, TENDENCIA_PERCENTUAL)
@@ -100,6 +117,12 @@ if POPULACAO_POR_MU_LAMBDA:
     gerador_demais_populacoes = PopulacaoMuLambda(POPULACAO_QUANTIDADE_CROMOSSOMOS, tecnica_cruzamento, cromossomo_utilidades, metodo_selecao, tendencia)
 else:
     gerador_demais_populacoes = PopulacaoElitismo(POPULACAO_QUANTIDADE_CROMOSSOMOS, POPULACAO_ELITISMO_PERCENTUAL_SOBREVIVENTES, tecnica_cruzamento, cromossomo_utilidades, metodo_selecao, tendencia)
+
+if MULTIOBJETIVO:
+    ordenacao = OrdenacaoMultiobjetivo(cromossomo_utilidades, MOCHILA_CAPACIDADE_MAXIMA, POPULACAO_QUANTIDADE_CROMOSSOMOS)
+else:
+    ordenacao = OrdenacaoSimples(cromossomo_utilidades, MOCHILA_CAPACIDADE_MAXIMA, POPULACAO_QUANTIDADE_CROMOSSOMOS)
+
 
 populacao_preenchimento = PopulacaoPreencher(POPULACAO_QUANTIDADE_CROMOSSOMOS, tecnica_cruzamento, cromossomo_utilidades, metodo_selecao)
 
@@ -122,27 +145,37 @@ for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
     tempo_inicio = time.time()
 
     populacao = gerador_primeira_populacao.gerar_populacao()
-    geracao = geracao_utilidades.apurar_geracao(populacao)
-    melhor_fitness = geracao['fitness'][0]
+    geracao = ordenacao.ordenar_populacao(populacao)
+    if MULTIOBJETIVO:
+        melhor_fitness = geracao['utilidade'][0] + geracao['preco'][0] + geracao['peso'][0]
+    else:
+        melhor_fitness = geracao['fitness'][0]
     contador_geracoes += 1
     geracao_utilidades.salvar_melhor(geracao, contador_execucoes)
     if EXECUCAO_SALVAR_GERACAO_COMPLETA:
         geracao_utilidades.salvar_geracao(geracao, contador_execucoes, contador_geracoes)
     tempo_gasto = time.time() - tempo_inicio
-    utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, tempo_gasto, quantidade_geracoes_sem_evolucao, melhor_fitness)
+    if MULTIOBJETIVO:
+        utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, tempo_gasto, quantidade_geracoes_sem_evolucao, None)
+    else:
+        utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, tempo_gasto, quantidade_geracoes_sem_evolucao, melhor_fitness)
 
-    while True:
+    while contador_geracoes <= EXECUCAO_QUANTIDADE_GERACOES_MAXIMA:
         tempo_inicio = time.time()
         geracao = geracao_utilidades.remover_duplicados(geracao)
         populacao = populacao_preenchimento.gerar_populacao(geracao['solucao'].tolist())
         populacao = gerador_demais_populacoes.gerar_populacao(geracao['solucao'].tolist(), percentual_mutacao, contador_geracoes)
-        geracao = geracao_utilidades.apurar_geracao(populacao)
-        if melhor_fitness == geracao['fitness'][0]:
+        geracao = ordenacao.ordenar_populacao(populacao)
+        if MULTIOBJETIVO:
+            melhor_atual = geracao['utilidade'][0] + geracao['preco'][0] + geracao['peso'][0]
+        else:
+            melhor_atual = geracao['fitness'][0]
+        if melhor_fitness == melhor_atual:
             if (100-percentual_mutacao) >= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO:
                 percentual_mutacao += EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO
             quantidade_geracoes_sem_evolucao += 1
         else:
-            melhor_fitness = geracao['fitness'][0]
+            melhor_fitness = melhor_atual
             if percentual_mutacao >= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO:
                 percentual_mutacao -= EXECUCAO_PERCENTUAL_INCREMENTO_SEM_EVOLUCAO
             quantidade_geracoes_sem_evolucao = 0
@@ -151,8 +184,17 @@ for i in range(EXECUCAO_QUANTIDADE_REPETICOES):
         if EXECUCAO_SALVAR_GERACAO_COMPLETA:
             geracao_utilidades.salvar_geracao(geracao, contador_execucoes, contador_geracoes)
         tempo_gasto = time.time() - tempo_inicio
-        utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, tempo_gasto, quantidade_geracoes_sem_evolucao, melhor_fitness)
+        if MULTIOBJETIVO:
+            utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, tempo_gasto, quantidade_geracoes_sem_evolucao, None)
+        else:
+            utilidades.imprimir_informacoes(contador_geracoes, percentual_mutacao, tempo_gasto, quantidade_geracoes_sem_evolucao, melhor_fitness)
 
         if quantidade_geracoes_sem_evolucao >= EXECUCAO_QUANTIDADE_GERACOES_SEM_EVOLUCAO:
             break
+
+    if MULTIOBJETIVO:
+        geracao = geracao[geracao['fitness']==0]
+        geracao = geracao_utilidades.calcular_ahp(geracao, AHP_MATRIZ_JULGAMENTO)
+        geracao = geracao_utilidades.calcular_borda(geracao)
+        geracao_utilidades.salvar_melhores_multiobjetivo(geracao, contador_execucoes)
 
